@@ -14,6 +14,8 @@ public class Constants {
     public static final int TEXT_FIELD_WIDTH = 150;
     public static final int TEXT_FIELD_HEIGHT = 30;
 
+    public static final int SPACE = 10;
+
 
 
 }

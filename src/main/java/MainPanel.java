@@ -1,5 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
@@ -8,6 +9,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 
 public class MainPanel extends JPanel {
 
+    private ChromeDriver driver;
     private JButton whatsappButton;
     private JTextField text;
     private JTextField phoneNumber;
@@ -17,6 +19,7 @@ public class MainPanel extends JPanel {
     private Font textFont;
 
     private boolean isConnected;
+    private WebElement lastMessage;
 
     public MainPanel(int x, int y, int width, int height) {
         this.setLayout(null);
@@ -39,13 +42,25 @@ public class MainPanel extends JPanel {
         this.messages.setFont(this.textFont);
         this.add(this.messages);
 
+
         this.text = new JTextField();
         this.text.setBounds((this.whatsappButton.getX() - (Constants.TEXT_FIELD_WIDTH - this.whatsappButton.getWidth()) / 2), this.whatsappButton.getY() - this.whatsappButton.getHeight(), Constants.TEXT_FIELD_WIDTH, Constants.TEXT_FIELD_HEIGHT);
         this.add(this.text);
 
+        JLabel textLabel = new JLabel("Enter text:");
+        textLabel.setBounds(this.text.getX() - this.text.getWidth() - Constants.SPACE * 3, this.whatsappButton.getY() - this.whatsappButton.getHeight(), Constants.TEXT_FIELD_WIDTH * 2, Constants.TEXT_FIELD_HEIGHT);
+        textLabel.setFont(this.textFont);
+        this.add(textLabel);
+
         this.phoneNumber = new JTextField();
         this.phoneNumber.setBounds((this.whatsappButton.getX() - (Constants.TEXT_FIELD_WIDTH - this.whatsappButton.getWidth()) / 2), this.text.getY() - (this.text.getHeight() * 2), Constants.TEXT_FIELD_WIDTH, Constants.TEXT_FIELD_HEIGHT);
         this.add(this.phoneNumber);
+
+
+        JLabel phoneNumberLabel = new JLabel("Enter phone number:");
+        phoneNumberLabel.setBounds(this.phoneNumber.getX() - this.phoneNumber.getWidth() - Constants.SPACE * 3, this.text.getY() - (this.text.getHeight() * 2), Constants.TEXT_FIELD_WIDTH * 2, Constants.TEXT_FIELD_HEIGHT);
+        phoneNumberLabel.setFont(this.textFont);
+        this.add(phoneNumberLabel);
 
 
         System.setProperty("webdriver.chrome.driver",
@@ -57,24 +72,22 @@ public class MainPanel extends JPanel {
 
             if (phoneNumberInt != 0) {
                 if (!this.text.getText().equals("")) {
-                    ChromeDriver driver = new ChromeDriver();
-                    driver.get(Constants.WEB_WHATSAPP_ADDRESS + phoneNumberInt);
+                    this.driver = new ChromeDriver();
+                    this.driver.get(Constants.WEB_WHATSAPP_ADDRESS + phoneNumberInt);
                     while (!this.isConnected) {
                         try {
-                            this.isConnected = (driver.findElement(By.id("side")).isDisplayed());
+                            this.isConnected = (this.driver.findElement(By.id("side")).isDisplayed());
                         } catch (NoSuchElementException exception) {
                         }
                     }
                     messages.setText("You are connected!");
 
 
-
-
                     boolean isTextBoxExist = false;
                     WebElement textBox = null;
                     while (!isTextBoxExist) {
                         try {
-                            textBox = (driver.findElement(By.cssSelector("div[title=\"Type a message\"]")));
+                            textBox = (this.driver.findElement(By.cssSelector("div[title=\"Type a message\"]")));
                             isTextBoxExist = true;
                         } catch (NoSuchElementException exception) {
                         }
@@ -85,25 +98,60 @@ public class MainPanel extends JPanel {
                     boolean isButtonExist = false;
                     while (!isButtonExist) {
                         try {
-                            sendButton = (driver.findElement(By.className("tvf2evcx oq44ahr5 lb5m6g5c svlsagor p2rjqpw5 epia9gcq")));
+                            sendButton = (this.driver.findElement(By.cssSelector("span[data-icon=\"send\"]")));
                             isButtonExist = true;
                         } catch (NoSuchElementException exception) {
                         }
-                        System.out.println(isButtonExist);
                     }
 
                     sendButton.click();
+                    messages.setText("the message was sent successfully!");
 
 
+                    List <WebElement> list = null;
+                    boolean isHere = false;
+                    while (!isHere) {
+                        try {
+                            list = this.driver.findElements(By.cssSelector("span[aria-label=\" Pending \"]"));
+                            isHere = true;
+                        } catch (NoSuchElementException exception) {
+                            System.out.println("No");
+                        }
+                    }
+                    System.out.println("Yes");
 
+                    WebElement lastMessageStatus = list.get(list.size() - 1);
+
+                    String messageStatus2 =  lastMessageStatus.getAttribute("aria-label");
+                    boolean isRead = false;
+                    while (!isRead) {
+                        String messageStatus = lastMessageStatus.getAttribute("aria-label");
+
+                        System.out.println(messageStatus);
+                        if (!messageStatus.equals(messageStatus2)) {
+                            if (messageStatus.equals(" Sent ")) {
+                                this.messages.setText("The message sent");
+                            } else if (messageStatus.equals(" Delivered ")) {
+                                this.messages.setText("The message delivered");
+                            }else if (messageStatus.equals(" Read ")) {
+                                isRead = true;
+                                this.messages.setText("The message read");
+                            }
+                            messageStatus2 = messageStatus;
+                        }
+                    }
                 } else {
                     this.messages.setText("no message");
                 }
-
             }
 
 
         });
+
+//        Pending
+//        Sent
+//        Delivered
+//        Read
 
 //        new Thread(() -> {
 //            try {
