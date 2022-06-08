@@ -138,10 +138,10 @@ public class MainPanel extends JPanel {
 
                     while (!isDelivered) {
                         if (lastMessageStatus.getAttribute("aria-label").equals(" Delivered ")) {
+                            this.messages.setText("The message delivered");
                             isDelivered = true;
                         }
                     }
-                    this.messages.setText("The message delivered");
 
                     while (!isRead) {
                         if (lastMessageStatus.getAttribute("aria-label").equals(" Read ")) {
