@@ -108,36 +108,45 @@ public class MainPanel extends JPanel {
                     messages.setText("the message was sent successfully!");
 
 
-                    List <WebElement> list = null;
+                    List<WebElement> list = null;
                     boolean isHere = false;
                     while (!isHere) {
                         try {
                             list = this.driver.findElements(By.cssSelector("span[aria-label=\" Pending \"]"));
                             isHere = true;
                         } catch (NoSuchElementException exception) {
-                            System.out.println("No");
                         }
                     }
-                    System.out.println("Yes");
+
 
                     WebElement lastMessageStatus = list.get(list.size() - 1);
 
-                    String messageStatus2 =  lastMessageStatus.getAttribute("aria-label");
-                    boolean isRead = false;
-                    while (!isRead) {
-                        String messageStatus = lastMessageStatus.getAttribute("aria-label");
 
-                        System.out.println(messageStatus);
-                        if (!messageStatus.equals(messageStatus2)) {
-                            if (messageStatus.equals(" Sent ")) {
-                                this.messages.setText("The message sent");
-                            } else if (messageStatus.equals(" Delivered ")) {
-                                this.messages.setText("The message delivered");
-                            }else if (messageStatus.equals(" Read ")) {
-                                isRead = true;
-                                this.messages.setText("The message read");
-                            }
-                            messageStatus2 = messageStatus;
+                    boolean isSent = false;
+                    boolean isDelivered = false;
+                    boolean isRead = false;
+
+
+                    while (!isSent) {
+                        System.out.println("!isSent");
+                        if (lastMessageStatus.getAttribute("aria-label").equals(" Sent ")) {
+                            this.messages.setText("The message sent");
+                            isSent = true;
+                        }
+                    }
+
+
+                    while (!isDelivered) {
+                        if (lastMessageStatus.getAttribute("aria-label").equals(" Delivered ")) {
+                            isDelivered = true;
+                        }
+                    }
+                    this.messages.setText("The message delivered");
+
+                    while (!isRead) {
+                        if (lastMessageStatus.getAttribute("aria-label").equals(" Read ")) {
+                            this.messages.setText("The message read");
+                            isRead = true;
                         }
                     }
                 } else {
@@ -161,7 +170,6 @@ public class MainPanel extends JPanel {
 //            }
 //        }).start();
 
-//        div[title=\"Type a message\"]"
 
     }
 
