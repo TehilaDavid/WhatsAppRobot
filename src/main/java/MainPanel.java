@@ -83,79 +83,71 @@ public class MainPanel extends JPanel {
                     messages.setText("You are connected!");
 
 
-                    boolean isTextBoxExist = false;
-                    WebElement textBox = null;
-                    while (!isTextBoxExist) {
-                        try {
-                            textBox = (this.driver.findElement(By.cssSelector("div[title=\"Type a message\"]")));
-                            isTextBoxExist = true;
-                        } catch (NoSuchElementException exception) {
-                        }
-                    }
-                    textBox.sendKeys(this.text.getText());
-
-                    WebElement sendButton = null;
-                    boolean isButtonExist = false;
-                    while (!isButtonExist) {
-                        try {
-                            sendButton = (this.driver.findElement(By.cssSelector("span[data-icon=\"send\"]")));
-                            isButtonExist = true;
-                        } catch (NoSuchElementException exception) {
-                        }
-                    }
-
-                    sendButton.click();
-                    messages.setText("the message was sent successfully!");
-
-
-                    List<WebElement> list = null;
-                    boolean isHere = false;
-                    while (!isHere) {
-                        try {
-                            list = this.driver.findElements(By.cssSelector("span[aria-label=\" Pending \"]"));
-                            isHere = true;
-                        } catch (NoSuchElementException exception) {
-                        }
-                    }
-
-
-                    WebElement lastMessageStatus = list.get(list.size() - 1);
-
-
-                    boolean isSent = false;
-                    boolean isDelivered = false;
-                    boolean isRead = false;
-
-
-                    while (!isSent) {
-                        System.out.println("!isSent");
-                        if (lastMessageStatus.getAttribute("aria-label").equals(" Sent ")) {
-                            this.messages.setText("The message sent");
-                            isSent = true;
-                        }
-                    }
-
-
-                    while (!isDelivered) {
-                        if (lastMessageStatus.getAttribute("aria-label").equals(" Delivered ")) {
-                            this.messages.setText("The message delivered");
-                            isDelivered = true;
-                        }
-                    }
-
-                    while (!isRead) {
-                        if (lastMessageStatus.getAttribute("aria-label").equals(" Read ")) {
-                            this.messages.setText("The message read");
-                            isRead = true;
-                        }
-                    }
-                } else {
-                    this.messages.setText("no message");
                 }
             }
 
 
         });
+        if (this.isConnected) {
+            boolean isTextBoxExist = false;
+            WebElement textBox = null;
+            while (!isTextBoxExist) {
+                try {
+                    textBox = (this.driver.findElement(By.cssSelector("div[title=\"Type a message\"]")));
+                    isTextBoxExist = true;
+                } catch (NoSuchElementException exception) {
+                }
+            }
+            textBox.sendKeys(this.text.getText());
+
+            WebElement sendButton = null;
+            boolean isButtonExist = false;
+            while (!isButtonExist) {
+                try {
+                    sendButton = (this.driver.findElement(By.cssSelector("span[data-icon=\"send\"]")));
+                    isButtonExist = true;
+                } catch (NoSuchElementException exception) {
+                }
+            }
+
+            sendButton.click();
+            messages.setText("the message was sent successfully!");
+
+
+            List<WebElement> sentMessagesList = null;
+            boolean isHere = false;
+            while (!isHere) {
+                try {
+                    sentMessagesList = this.driver.findElements(By.cssSelector("span[aria-label=\" Pending \"]"));
+                    isHere = true;
+                } catch (NoSuchElementException exception) {
+                }
+            }
+
+
+            WebElement lastMessageStatus = sentMessagesList.get(sentMessagesList.size() - 1);
+
+            String messageStatus1 =  lastMessageStatus.getAttribute("aria-label");
+            boolean isRead = false;
+            while (!isRead) {
+                String messageStatus2 = lastMessageStatus.getAttribute("aria-label");
+                System.out.println(messageStatus2);
+
+                if (!messageStatus2.equals(messageStatus1)) {
+                    if (messageStatus2.equals(" Sent ")) {
+                        this.messages.setText("V");
+                    } else if (messageStatus2.equals(" Delivered ")) {
+                        this.messages.setText("VV");
+                    }else if (messageStatus2.equals(" Read ")) {
+                        isRead = true;
+                        this.messages.setText("Blue VV");
+                    }
+                    messageStatus1 = messageStatus2;
+                }
+        }
+        } else {
+            this.messages.setText("no message");
+        }
 
 //        Pending
 //        Sent
