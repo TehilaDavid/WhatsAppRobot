@@ -22,8 +22,6 @@ public class MainPanel extends JPanel {
     private Font textFont;
     private Font messagesFont;
 
-    private int amountResponseMessages;
-
     private WebElement lastMessage;
 
     private boolean button;
@@ -67,8 +65,6 @@ public class MainPanel extends JPanel {
                                 sendMessage();
 
                                 updateMessageStatus();
-
-                                this.amountResponseMessages = getResponseMessages().size();
 
                                 checkRespondMessage();
                             } else {
@@ -192,28 +188,18 @@ public class MainPanel extends JPanel {
         messages.setText("You are connected!");
     }
 
-    private List<WebElement> getResponseMessages() {
-        List<WebElement> responseMessagesList = null;
-        boolean isResponseMessagesExist = false;
-        while (!isResponseMessagesExist) {
-            try {
-                responseMessagesList = this.driver.findElements(By.cssSelector("span[data-icon=\"tail-in\"]"));
-                isResponseMessagesExist = true;
-            } catch (NoSuchElementException exception) {
-
-            }
-        }
-        return responseMessagesList;
-    }
 
     private void checkRespondMessage() {
         new Thread(() -> {
             while (!this.newMessage) {
-                List<WebElement> responseMessagesList = null;
+
                 boolean isReceivedNewMessage = false;
+
                 while (!isReceivedNewMessage) {
-                    responseMessagesList = getResponseMessages();
-                    isReceivedNewMessage = (this.amountResponseMessages < responseMessagesList.size());
+                    List<WebElement> sideBarMessages = this.driver.findElements(By.cssSelector("span[class=\"i0jNr selectable-text copyable-text\"]"));
+                    if (!sideBarMessages.get(sideBarMessages.size() - 1).getText().equals(this.text.getText())) {
+                        isReceivedNewMessage = true;
+                    }
                 }
                 System.out.println("Received a new message");
                 this.messages.setText(extractRespondMessage());
