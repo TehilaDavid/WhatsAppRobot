@@ -20,19 +20,22 @@ public class MainPanel extends JPanel {
 
     private Font buttonFont;
     private Font textFont;
+    private Font messagesFont;
 
     private int amountResponseMessages;
 
     private WebElement lastMessage;
 
     private boolean button;
+    private boolean newMessage;
 
     public MainPanel(int x, int y, int width, int height) {
         this.setLayout(null);
         this.setBounds(x, y, width, height);
 
         this.buttonFont = new Font("David", Font.BOLD, Constants.BUTTON_FONT_SIZE);
-        this.textFont = new Font("David", Font.ROMAN_BASELINE, Constants.BUTTON_FONT_SIZE);
+        this.textFont = new Font("David", Font.ROMAN_BASELINE, Constants.TEXT_FONT_SIZE);
+        this.messagesFont = new Font("David", Font.ROMAN_BASELINE, Constants.MESSAGE_FONT_SIZE);
 
         buildPanel();
 
@@ -144,17 +147,13 @@ public class MainPanel extends JPanel {
                     this.messages.setText("VV");
                 } else if (messageStatus2.equals(" Read ")) {
                     isRead = true;
-                    this.messages.setText("Blue VV");
+                    this.messages.setForeground(Color.BLUE);
+                    this.messages.setText("VV");
+                    this.messages.setForeground(Color.BLACK);
                 }
                 messageStatus1 = messageStatus2;
             }
         }
-
-//        div[title=\"Type a message\"]"
-//        Pending
-//        Sent
-//        Delivered
-//        Read
     }
 
     private void sendMessage() {
@@ -208,15 +207,36 @@ public class MainPanel extends JPanel {
     }
 
     private void checkRespondMessage() {
-        List<WebElement> responseMessagesList = null;
-        boolean isReceivedNewMessage = false;
-        while (!isReceivedNewMessage) {
-            responseMessagesList = getResponseMessages();
-            isReceivedNewMessage = (this.amountResponseMessages < responseMessagesList.size());
-        }
-        System.out.println("Received a new message");
-        System.out.println(responseMessagesList.get(this.amountResponseMessages).getText());
+        new Thread(() -> {
+            while (!this.newMessage) {
+                List<WebElement> responseMessagesList = null;
+                boolean isReceivedNewMessage = false;
+                while (!isReceivedNewMessage) {
+                    responseMessagesList = getResponseMessages();
+                    isReceivedNewMessage = (this.amountResponseMessages < responseMessagesList.size());
+                }
+                System.out.println("Received a new message");
+                this.messages.setText(extractRespondMessage());
+                this.newMessage = true;
+                this.driver.close();
+
+                try {
+                    Thread.sleep(10000);
+                } catch (InterruptedException exception) {
+                    exception.printStackTrace();
+                }
+            }
+        }).start();
     }
+
+    private String extractRespondMessage() {
+        List<WebElement> sideBarMessages = this.driver.findElements(By.cssSelector("span[class=\"i0jNr selectable-text copyable-text\"]"));
+        WebElement respondMessage = sideBarMessages.get((sideBarMessages.size() - 1));
+        String respondMessageText = respondMessage.getText();
+
+        return respondMessageText;
+    }
+
 
     private void buildPanel() {
         this.whatsappButton = new JButton();
@@ -228,8 +248,9 @@ public class MainPanel extends JPanel {
 
         this.messages = new JLabel();
         this.messages.setBounds((this.whatsappButton.getX() - (Constants.CONNECTED_TEXT_WIDTH - this.whatsappButton.getWidth()) / 2),
-                this.whatsappButton.getY() + this.whatsappButton.getHeight(), Constants.CONNECTED_TEXT_WIDTH, this.whatsappButton.getHeight());
-        this.messages.setFont(this.textFont);
+                this.whatsappButton.getY() + this.whatsappButton.getHeight() * 2, Constants.CONNECTED_TEXT_WIDTH * 2, this.whatsappButton.getHeight());
+        this.messages.setFont(this.messagesFont);
+        this.messages.setForeground(Color.BLACK);
         this.add(this.messages);
 
 

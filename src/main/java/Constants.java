@@ -8,6 +8,8 @@ public class Constants {
     public static final int BUTTON_WIDTH = 170;
     public static final int BUTTON_HEIGHT = 60;
     public static final int BUTTON_FONT_SIZE = 20;
+    public static final int TEXT_FONT_SIZE = 20;
+    public static final int MESSAGE_FONT_SIZE = 35;
 
     public static final int CONNECTED_TEXT_WIDTH = 300;
 
