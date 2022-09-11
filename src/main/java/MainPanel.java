@@ -20,9 +20,9 @@ public class MainPanel extends JPanel {
 
     private JLabel messages;
 
-    private Font buttonFont;
-    private Font textFont;
-    private Font messagesFont;
+    private final Font buttonFont;
+    private final Font textFont;
+    private final Font messagesFont;
 
     private ArrayList<Integer> correctPhoneNumbers;
 
@@ -32,7 +32,6 @@ public class MainPanel extends JPanel {
     private boolean isMessageSend;
     private boolean isLastPhoneNumber;
 
-    private String reportPhoneNumber;
     private String reportMessageText;
     private String reportRecipientResponse;
 
@@ -43,8 +42,8 @@ public class MainPanel extends JPanel {
 
 
         this.buttonFont = new Font("David", Font.BOLD, Constants.BUTTON_FONT_SIZE);
-        this.textFont = new Font("David", Font.ROMAN_BASELINE, Constants.TEXT_FONT_SIZE);
-        this.messagesFont = new Font("David", Font.ROMAN_BASELINE, Constants.MESSAGE_FONT_SIZE);
+        this.textFont = new Font("David", Font.ITALIC, Constants.TEXT_FONT_SIZE);
+        this.messagesFont = new Font("David", Font.ITALIC, Constants.MESSAGE_FONT_SIZE);
 
 
         buildPanel();
@@ -55,7 +54,6 @@ public class MainPanel extends JPanel {
 
 
         this.whatsappButton.addActionListener((e) -> {
-            this.reportPhoneNumber = "";
             this.reportMessageText = "";
             this.reportRecipientResponse = "";
 
@@ -67,9 +65,9 @@ public class MainPanel extends JPanel {
 
             if (this.correctPhoneNumbers != null) {
 
-                for (int i = 0; i < correctPhoneNumbers.size(); i++) {
+                for (Integer correctPhoneNumber : correctPhoneNumbers) {
                     if (this.isValidWhatsappNumber) {
-                        reportText += "Recipient : " + (this.correctPhoneNumbers.get(i) == null ? "" : "0" + this.correctPhoneNumbers.get(i)) + "\n" +
+                        reportText += "Recipient : " + (correctPhoneNumber == null ? "" : "0" + correctPhoneNumber) + "\n" +
                                 "Message : " + (this.reportMessageText == null ? "" : this.reportMessageText) + "\n" +
                                 "Recipient response : " + (this.reportRecipientResponse == null ? "" : this.reportRecipientResponse);
                     } else {
@@ -78,7 +76,7 @@ public class MainPanel extends JPanel {
                     reportText += "\n" + "\n";
                 }
             }
-            writeToFile(reportText, Constants.PATH_TO_FILTERED_REPORT);
+            writeToFile(reportText);
         });
 
         new Thread(() -> {
@@ -91,8 +89,8 @@ public class MainPanel extends JPanel {
                         this.messages.setForeground(Color.BLACK);
                         String[] phoneNumbers = this.phoneNumber.getText().split("\\n");
                         int counter = 0;
-                        for (int i = 0; i < phoneNumbers.length; i++) {
-                            int currentNumber = checkPhoneNumber(phoneNumbers[i]);
+                        for (String number : phoneNumbers) {
+                            int currentNumber = checkPhoneNumber(number);
                             if (currentNumber != 0) {
                                 correctPhoneNumbers.add(currentNumber);
                                 counter++;
@@ -136,7 +134,6 @@ public class MainPanel extends JPanel {
                                 for (int i = 0; i < correctPhoneNumbers.size(); i++) {
                                     this.isMessageSend = false;
                                     int currentPhoneNumber = correctPhoneNumbers.get(i);
-                                    this.reportPhoneNumber += "0" + currentPhoneNumber;
 
                                     if (!this.textToSend.getText().equals("")) {
                                         this.reportMessageText = this.textToSend.getText();
@@ -232,7 +229,7 @@ public class MainPanel extends JPanel {
             messages.setText("There is no phone number");
         } else if (phoneNumberString.length() != 10) {
             messages.setText("Invalid input length");
-        } else if (!phoneNumberString.substring(0, 2).equals("05")) {
+        } else if (!phoneNumberString.startsWith("05")) {
             messages.setText("Area code incorrect");
         } else {
             try {
@@ -276,7 +273,6 @@ public class MainPanel extends JPanel {
                 }catch (NoSuchElementException e) {
                 }
             } catch (UnhandledAlertException e) {
-
             }
         }
         if (this.isValidWhatsappNumber) {
@@ -310,7 +306,7 @@ public class MainPanel extends JPanel {
 
         String messageStatus = lastMessageStatus.getAttribute("aria-label");
         boolean isRead = false;
-        boolean isSend = false;
+//        boolean isSend = false;
         while (!isRead) {
             try {
                 String currentMessageStatus = lastMessageStatus.getAttribute("aria-label");
@@ -326,12 +322,12 @@ public class MainPanel extends JPanel {
                         this.messages.setText("VV");
 
                         isRead = true;
-                        isSend = true;
+//                        isSend = true;
                         this.isMessageSend = true;
 
                     } else if (currentMessageStatus.equals(" Read ")) {
                         isRead = true;
-                        isSend = true;
+//                        isSend = true;
                         this.messages.setForeground(Color.BLUE);
                         this.messages.setText("VV");
 
@@ -382,9 +378,9 @@ public class MainPanel extends JPanel {
         return lastMessageText;
     }
 
-    private void writeToFile(String text, String path) {
+    private void writeToFile(String text) {
         try {
-            FileWriter writer = new FileWriter(path);
+            FileWriter writer = new FileWriter(Constants.PATH_TO_FILTERED_REPORT);
             writer.write(text);
             writer.close();
         } catch (IOException e) {
