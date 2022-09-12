@@ -17,4 +17,9 @@ public class Constants {
     public static final int TEXT_FIELD_HEIGHT = 30;
 
     public static final int SPACE = 10;
+
+    public static final int SENT_STATUS = 1;
+    public static final int DELIVERED_STATUS = 2;
+    public static final int READ_STATUS = 3;
+
 }
