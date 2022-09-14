@@ -29,6 +29,8 @@ public class MainPanel extends JPanel {
     private ArrayList<PhoneNumber> correctPhoneNumbers;
 
     private boolean whatsappButtonClicked;
+    private boolean checkMessageStatusOneTime;
+    private int counter;
 
     private String reportMessageText;
 
@@ -39,18 +41,15 @@ public class MainPanel extends JPanel {
         this.setBounds(x, y, width, height);
         this.setBackground(Color.PINK);
 
-
         this.buttonFont = new Font("David", Font.BOLD, Constants.BUTTON_FONT_SIZE);
         this.textFont = new Font("David", Font.ITALIC, Constants.TEXT_FONT_SIZE);
         this.messagesFont = new Font("David", Font.ITALIC, Constants.MESSAGE_FONT_SIZE);
-
+        this.counter = 1;
 
         buildPanel();
 
-
         System.setProperty("webdriver.chrome.driver",
                 "C:\\Users\\tehil\\Downloads\\chromedriver_win32 (1)\\chromedriver.exe");
-
 
         this.whatsappButton.addActionListener((e) -> {
             this.reportMessageText = "";
@@ -65,27 +64,33 @@ public class MainPanel extends JPanel {
                 while (true) {
 
                     if (this.whatsappButtonClicked) {
-                        correctPhoneNumbers = new ArrayList<>();
                         this.messages.setForeground(Color.BLACK);
-                        String[] phoneNumbers = this.phoneNumber.getText().split("\\n");
-                        int counter = 0;
-                        for (String number : phoneNumbers) {
-                            int currentNumber = checkPhoneNumber(number);
-                            if (currentNumber != 0) {
-                                this.correctPhoneNumbers.add(new PhoneNumber("0" + currentNumber));
-                                counter++;
-                            }
-                        }
-//
-
-                        this.messages.setText("You entered " + phoneNumbers.length + " recipient numbers, of which " + counter + " are valid cell phone numbers.");
-
-
-                        if (counter != 0) {
+                        int correctNumbers = buildCorrectPhoneNumbersList();
+                        if (correctNumbers != 0) {
                             buildQuestion();
 
                             this.approveButton.addActionListener((e) -> {
                                 sendingMessages();
+                                this.checkMessageStatusOneTime = true;
+
+
+
+                                new Thread(() -> {
+                                    try {
+                                        while (true) {
+                                            for (PhoneNumber phoneNumber : this.correctPhoneNumbers) {
+                                                this.currentPhoneNumber = phoneNumber;
+                                                if (this.currentPhoneNumber.isExistInWhatsapp()) {
+                                                    this.driver.get(Constants.WEB_WHATSAPP_ADDRESS + currentPhoneNumber.getPhoneNumber());
+                                                    updateMessageStatus();
+                                                }
+                                            }
+                                            Thread.sleep(10000);
+                                        }
+                                    } catch (InterruptedException exception) {
+                                        exception.printStackTrace();
+                                    }
+                                }).start();
                             });
                         }
                         this.whatsappButtonClicked = false;
@@ -181,7 +186,6 @@ public class MainPanel extends JPanel {
                     WebElement okButton = (this.driver.findElement(By.cssSelector("div[data-testid=\"popup-controls-ok\"]")));
                     if (okButton != null) {
                         okButton.click();
-                        messages.setText("Invalid telephone number");
                         isElementExist = true;
 
                         this.currentPhoneNumber.setExistInWhatsapp(false);
@@ -211,46 +215,54 @@ public class MainPanel extends JPanel {
     private void updateMessageStatus() {
         List<WebElement> sentMessagesList = null;
         boolean isSentMessagesExist = false;
-        while (!isSentMessagesExist) {
-            try {
-                sentMessagesList = this.driver.findElements(By.cssSelector("span[aria-label=\" Pending \"]"));
-                isSentMessagesExist = true;
-            } catch (NoSuchElementException exception) {
+        if (!this.checkMessageStatusOneTime) {
+            while (!isSentMessagesExist) {
+                try {
+                    sentMessagesList = this.driver.findElements(By.cssSelector("span[aria-label=\" Pending \"]"));
+                    isSentMessagesExist = true;
+                } catch (NoSuchElementException exception) {
+                }
+            }
+        } else {
+            while (!isSentMessagesExist) {
+                try {
+                    sentMessagesList = this.driver.findElements(By.cssSelector("span[data-testid=\"msg-dblcheck\"]"));
+                    if (sentMessagesList.size() != 0) {
+                        isSentMessagesExist = true;
+                    }
+                    System.out.println(sentMessagesList);
+                } catch (NoSuchElementException exception) {
+                }
             }
         }
+
         WebElement lastMessageStatus = sentMessagesList.get(sentMessagesList.size() - 1);
 
         String messageStatus = lastMessageStatus.getAttribute("aria-label");
 
         boolean isSent = false;
-        while (!isSent) {
+        while (!isSent && !this.checkMessageStatusOneTime) {
             try {
                 String currentMessageStatus;
                 currentMessageStatus = lastMessageStatus.getAttribute("aria-label");
 
-                if (!currentMessageStatus.equals(messageStatus)) {
+                if (!currentMessageStatus.equals(messageStatus) || this.checkMessageStatusOneTime) {
                     if (currentMessageStatus.equals(" Sent ")) {
-                        this.messages.setText("V");
                         this.currentPhoneNumber.setMessageStatus(Constants.SENT_STATUS);
                         isSent = true;
 
 
                     } else if (currentMessageStatus.equals(" Delivered ")) {
-                        this.messages.setText("VV");
                         this.currentPhoneNumber.setMessageStatus(Constants.DELIVERED_STATUS);
 
                         isSent = true;
                     } else if (currentMessageStatus.equals(" Read ")) {
-                        this.messages.setForeground(Color.BLUE);
-                        this.messages.setText("VV");
-                        this.messages.setForeground(Color.BLACK);
                         this.currentPhoneNumber.setMessageStatus(Constants.READ_STATUS);
                         isSent = true;
                     }
                     messageStatus = currentMessageStatus;
                 }
             } catch (StaleElementReferenceException e) {
-                System.out.println("Error");
                 sentMessagesList = this.driver.findElements(By.cssSelector("span[aria-label=\" Pending \"]"));
                 lastMessageStatus = sentMessagesList.get(sentMessagesList.size() - 1);
             }
@@ -289,6 +301,21 @@ public class MainPanel extends JPanel {
             lastMessageText = lastMessage.getText();
         }
         return lastMessageText;
+    }
+
+    private int buildCorrectPhoneNumbersList () {
+        correctPhoneNumbers = new ArrayList<>();
+        String[] phoneNumbers = this.phoneNumber.getText().split("\\n");
+        int countCorrectNumbers = 0;
+        for (String number : phoneNumbers) {
+            int currentNumber = checkPhoneNumber(number);
+            if (currentNumber != 0) {
+                this.correctPhoneNumbers.add(new PhoneNumber("0" + currentNumber));
+                countCorrectNumbers++;
+            }
+        }
+        this.messages.setText("You entered " + phoneNumbers.length + " recipient numbers, of which " + countCorrectNumbers + " are valid cell phone numbers.");
+        return countCorrectNumbers;
     }
 
     private void buildQuestion () {
@@ -359,9 +386,10 @@ public class MainPanel extends JPanel {
 
     private void writeToFile(String text) {
         try {
-            FileWriter writer = new FileWriter(Constants.PATH_TO_FILTERED_REPORT);
+            FileWriter writer = new FileWriter(Constants.PATH_TO_FILTERED_REPORT + "whatsappReport" + this.counter + ".txt");
             writer.write(text);
             writer.close();
+            this.counter++;
         } catch (IOException e) {
             e.printStackTrace();
         }

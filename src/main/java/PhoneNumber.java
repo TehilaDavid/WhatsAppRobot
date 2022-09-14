@@ -42,8 +42,16 @@ public class PhoneNumber {
     @Override
     public String toString() {
         if (isExistInWhatsapp) {
+            String status;
+            if (messageStatus == Constants.SENT_STATUS) {
+                status = "Sent";
+            }else if (messageStatus == Constants.DELIVERED_STATUS) {
+                status = "Delivered";
+            }else {
+                status = "Read";
+            }
             return "phoneNumber='" + phoneNumber + '\'' +
-                    ", messageStatus=" + messageStatus +
+                    ", messageStatus=" + status +
                     ", recipientResponse='" + recipientResponse + '\'' +
                     '}';
         }else {

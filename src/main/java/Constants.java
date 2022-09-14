@@ -1,6 +1,6 @@
 public class Constants {
     public static final String WEB_WHATSAPP_ADDRESS = "https://web.whatsapp.com/send?phone=972";
-    public static final String PATH_TO_FILTERED_REPORT = "C:\\Users\\tehil\\Downloads\\whatsappReport.txt";
+    public static final String PATH_TO_FILTERED_REPORT = "C:\\Users\\tehil\\Downloads\\";
 
     public static final int WINDOW_WIDTH = 900;
     public static final int WINDOW_HEIGHT = 600;
