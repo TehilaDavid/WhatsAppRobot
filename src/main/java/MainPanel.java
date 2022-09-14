@@ -42,8 +42,8 @@ public class MainPanel extends JPanel {
         this.setBackground(Color.PINK);
 
         this.buttonFont = new Font("David", Font.BOLD, Constants.BUTTON_FONT_SIZE);
-        this.textFont = new Font("David", Font.ITALIC, Constants.TEXT_FONT_SIZE);
-        this.messagesFont = new Font("David", Font.ITALIC, Constants.MESSAGE_FONT_SIZE);
+        this.textFont = new Font("David", Font.PLAIN, Constants.TEXT_FONT_SIZE);
+        this.messagesFont = new Font("David", Font.PLAIN, Constants.MESSAGE_FONT_SIZE);
         this.numberOfReports = 1;
 
         buildPanel();
@@ -171,7 +171,6 @@ public class MainPanel extends JPanel {
             } catch (NoSuchElementException exception) {
             }
         }
-        messages.setText("You are connected!");
     }
 
     private void sendMessage() {
@@ -210,7 +209,6 @@ public class MainPanel extends JPanel {
                 }
             }
             sendButton.click();
-            messages.setText("The message was sent successfully!");
         }
     }
 
@@ -272,13 +270,11 @@ public class MainPanel extends JPanel {
 
     private void checkRespondMessage() {
         if (this.currentPhoneNumber.getRecipientResponse().equals("")) {
-//            boolean isReceivedNewMessage = false;
-            String reportRecipientResponse = "";
+            String reportRecipientResponse;
 
             reportRecipientResponse = extractRespondMessage();
             if (!this.reportMessageText.equals(reportRecipientResponse)) {
                 this.currentPhoneNumber.setRecipientResponse(reportRecipientResponse);
-//                isReceivedNewMessage = true;
             }
         }
     }
