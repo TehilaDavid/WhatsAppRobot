@@ -53,7 +53,6 @@ public class MainPanel extends JPanel {
 
         this.whatsappButton.addActionListener((e) -> {
             this.reportMessageText = "";
-
             this.whatsappButtonClicked = true;
         });
 
@@ -73,20 +72,10 @@ public class MainPanel extends JPanel {
                                 sendingMessages();
                                 this.checkMessageStatusOneTime = true;
 
-
                                 new Thread(() -> {
                                     try {
                                         while (true) {
-                                            for (PhoneNumber phoneNumber : this.correctPhoneNumbers) {
-                                                this.currentPhoneNumber = phoneNumber;
-                                                if (this.currentPhoneNumber.isExistInWhatsapp()) {
-                                                    if (this.correctPhoneNumbers.size() != 1) {
-                                                        this.driver.get(Constants.WEB_WHATSAPP_ADDRESS + currentPhoneNumber.getPhoneNumber());
-                                                    }
-                                                    updateMessageStatus();
-                                                    checkRespondMessage();
-                                                }
-                                            }
+                                            updateMessageStatusAndRespondMessage();
                                             Thread.sleep(10000);
                                         }
                                     } catch (InterruptedException exception) {
@@ -212,7 +201,7 @@ public class MainPanel extends JPanel {
         }
     }
 
-    private void updateMessageStatus() {
+    private void checkMessageStatus() {
         List<WebElement> sentMessagesList = null;
         boolean isSentMessagesExist = false;
         if (!this.checkMessageStatusOneTime) {
@@ -264,6 +253,19 @@ public class MainPanel extends JPanel {
             } catch (StaleElementReferenceException e) {
                 sentMessagesList = this.driver.findElements(By.cssSelector("span[aria-label=\" Pending \"]"));
                 lastMessageStatus = sentMessagesList.get(sentMessagesList.size() - 1);
+            }
+        }
+    }
+
+    private void updateMessageStatusAndRespondMessage () {
+        for (PhoneNumber phoneNumber : this.correctPhoneNumbers) {
+            this.currentPhoneNumber = phoneNumber;
+            if (this.currentPhoneNumber.isExistInWhatsapp()) {
+                if (this.correctPhoneNumbers.size() != 1) {
+                    this.driver.get(Constants.WEB_WHATSAPP_ADDRESS + currentPhoneNumber.getPhoneNumber());
+                }
+                checkMessageStatus();
+                checkRespondMessage();
             }
         }
     }
@@ -362,7 +364,7 @@ public class MainPanel extends JPanel {
                 sendMessage();
 
                 if (this.currentPhoneNumber.isExistInWhatsapp()) {
-                    updateMessageStatus();
+                    checkMessageStatus();
                 }
             } else {
                 this.messages.setText("no message");
