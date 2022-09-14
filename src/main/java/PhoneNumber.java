@@ -7,6 +7,7 @@ public class PhoneNumber {
 
     public PhoneNumber (String phoneNumber) {
         this.phoneNumber = phoneNumber;
+        recipientResponse = "";
     }
 
     public String getPhoneNumber() {
@@ -21,9 +22,6 @@ public class PhoneNumber {
         isExistInWhatsapp = existInWhatsapp;
     }
 
-    public int getMessageStatus() {
-        return messageStatus;
-    }
 
     public void setMessageStatus(int messageStatus) {
         if (messageStatus == Constants.SENT_STATUS || messageStatus == Constants.DELIVERED_STATUS || messageStatus == Constants.READ_STATUS) {

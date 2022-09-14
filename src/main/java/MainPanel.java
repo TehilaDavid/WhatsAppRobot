@@ -16,7 +16,6 @@ public class MainPanel extends JPanel {
     private JButton report;
     private JButton approveButton;
 
-
     private JTextField textToSend;
     private JTextArea phoneNumber;
 
@@ -30,11 +29,12 @@ public class MainPanel extends JPanel {
 
     private boolean whatsappButtonClicked;
     private boolean checkMessageStatusOneTime;
-    private int counter;
+    private int numberOfReports;
 
     private String reportMessageText;
 
     private PhoneNumber currentPhoneNumber;
+
 
     public MainPanel(int x, int y, int width, int height) {
         this.setLayout(null);
@@ -44,7 +44,7 @@ public class MainPanel extends JPanel {
         this.buttonFont = new Font("David", Font.BOLD, Constants.BUTTON_FONT_SIZE);
         this.textFont = new Font("David", Font.ITALIC, Constants.TEXT_FONT_SIZE);
         this.messagesFont = new Font("David", Font.ITALIC, Constants.MESSAGE_FONT_SIZE);
-        this.counter = 1;
+        this.numberOfReports = 1;
 
         buildPanel();
 
@@ -74,15 +74,17 @@ public class MainPanel extends JPanel {
                                 this.checkMessageStatusOneTime = true;
 
 
-
                                 new Thread(() -> {
                                     try {
                                         while (true) {
                                             for (PhoneNumber phoneNumber : this.correctPhoneNumbers) {
                                                 this.currentPhoneNumber = phoneNumber;
                                                 if (this.currentPhoneNumber.isExistInWhatsapp()) {
-                                                    this.driver.get(Constants.WEB_WHATSAPP_ADDRESS + currentPhoneNumber.getPhoneNumber());
+                                                    if (this.correctPhoneNumbers.size() != 1) {
+                                                        this.driver.get(Constants.WEB_WHATSAPP_ADDRESS + currentPhoneNumber.getPhoneNumber());
+                                                    }
                                                     updateMessageStatus();
+                                                    checkRespondMessage();
                                                 }
                                             }
                                             Thread.sleep(10000);
@@ -230,7 +232,6 @@ public class MainPanel extends JPanel {
                     if (sentMessagesList.size() != 0) {
                         isSentMessagesExist = true;
                     }
-                    System.out.println(sentMessagesList);
                 } catch (NoSuchElementException exception) {
                 }
             }
@@ -270,27 +271,16 @@ public class MainPanel extends JPanel {
     }
 
     private void checkRespondMessage() {
-        new Thread(() -> {
-            while (this.currentPhoneNumber.getRecipientResponse().equals("")) {
-                boolean isReceivedNewMessage = false;
-                String reportRecipientResponse = "";
+        if (this.currentPhoneNumber.getRecipientResponse().equals("")) {
+//            boolean isReceivedNewMessage = false;
+            String reportRecipientResponse = "";
 
-                while (!isReceivedNewMessage) {
-                    if (!this.reportMessageText.equals(extractRespondMessage())) {
-                        reportRecipientResponse = extractRespondMessage();
-                        isReceivedNewMessage = true;
-                    }
-                }
-                this.messages.setForeground(Color.BLACK);
+            reportRecipientResponse = extractRespondMessage();
+            if (!this.reportMessageText.equals(reportRecipientResponse)) {
                 this.currentPhoneNumber.setRecipientResponse(reportRecipientResponse);
-
-                try {
-                    Thread.sleep(10000);
-                } catch (InterruptedException exception) {
-                    exception.printStackTrace();
-                }
+//                isReceivedNewMessage = true;
             }
-        }).start();
+        }
     }
 
     private String extractRespondMessage() {
@@ -303,7 +293,7 @@ public class MainPanel extends JPanel {
         return lastMessageText;
     }
 
-    private int buildCorrectPhoneNumbersList () {
+    private int buildCorrectPhoneNumbersList() {
         correctPhoneNumbers = new ArrayList<>();
         String[] phoneNumbers = this.phoneNumber.getText().split("\\n");
         int countCorrectNumbers = 0;
@@ -318,7 +308,7 @@ public class MainPanel extends JPanel {
         return countCorrectNumbers;
     }
 
-    private void buildQuestion () {
+    private void buildQuestion() {
         JLabel questionLabel = new JLabel();
         questionLabel.setBounds(this.messages.getX() * 3, this.messages.getY() + this.messages.getHeight(), this.messages.getWidth() / 2, this.messages.getHeight());
         questionLabel.setForeground(Color.BLACK);
@@ -346,7 +336,7 @@ public class MainPanel extends JPanel {
         });
     }
 
-    private void buildReportText () {
+    private void buildReportText() {
         this.report.addActionListener((e) -> {
             String reportText = "";
             if (this.correctPhoneNumbers != null) {
@@ -359,7 +349,7 @@ public class MainPanel extends JPanel {
         });
     }
 
-    private void sendingMessages () {
+    private void sendingMessages() {
         for (int i = 0; i < this.correctPhoneNumbers.size(); i++) {
             this.currentPhoneNumber = correctPhoneNumbers.get(i);
 
@@ -386,10 +376,10 @@ public class MainPanel extends JPanel {
 
     private void writeToFile(String text) {
         try {
-            FileWriter writer = new FileWriter(Constants.PATH_TO_FILTERED_REPORT + "whatsappReport" + this.counter + ".txt");
+            FileWriter writer = new FileWriter(Constants.PATH_TO_FILTERED_REPORT + "whatsappReport" + this.numberOfReports + ".txt");
             writer.write(text);
             writer.close();
-            this.counter++;
+            this.numberOfReports++;
         } catch (IOException e) {
             e.printStackTrace();
         }
